@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- colocamos un favicon  -->
+    <link rel="icon" href="data:,">
+
+    <title>Chat</title>
+
+    <!-- importamos jquery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script type="module">
+    //hacemos un document.ready para que se cargue el socket
+    //    $(document).ready(function() {
+        const getUsername = async () => {
+            const username = localStorage.getItem('username');
+            if (username) {
+                console.log('username', username);
+                return username;
+            }
+            const res = await fetch('https://random-data-api.com/api/users/random_user');
+            const { username: randomUsername } = await res.json();
+            localStorage.setItem('username', randomUsername);
+            console.log('randomUsername', randomUsername);
+            return randomUsername;
+        }
+
+        const socket = io({
+            auth: {
+            username: await getUsername(),
+            serverOffset: 0
+            }
+        });
+
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+        const messages = document.getElementById('messages');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (input.value) {
+            socket.emit('message', input.value, socket.auth.username);
+            input.value = '';
+            }
+        });
+
+        socket.on('message', (msg, serverOffset, username) => {
+            const item = `<li>
+                <p>${msg}</p><small>${username}</small></li>`;
+            console.log("msg", msg);
+            messages.insertAdjacentHTML('beforeend', item);
+            window.scrollTo(0, document.body.scrollHeight);
+            socket.auth.serverOffset = serverOffset;
+            messages.scrollTop = messages.scrollHeight;
+        });
+
+        const toggleButton = document.getElementById('toggle-btn');
+
+        toggleButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (socket.connected) {
+            toggleButton.innerText = 'Connect';
+            socket.disconnect();
+        } else {
+            toggleButton.innerText = 'Disconnect';
+            socket.connect();
+        }
+        });
+
+    </script>
+
+    <style> 
+       *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        :root {
+            color-scheme: light dark;
+            }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            display: grid;
+            place-items: center;
+            height: 100vh;
+            padding: 36px;
+
+        }
+
+        #form{
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            overflow: hidden;
+            width: 350px;
+            height: 3rem;
+            background: rgba(0, 0, 0, 0.15); padding: 0.25rem; bottom: 0; left: 0; right: 0; display: flex; box-sizing: border-box; backdrop-filter: blur(10px);
+        }
+
+      /* #form { } */
+      #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
+      #input:focus { outline: none; }
+      #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+      #form > button:hover { background: white; color: #333;  transition: 0.3s ease-in;}
+      #messages { border: 1px solid #ccc;
+            border-radius: 4px;
+            overflow-y: scroll;
+            scroll-behavior: smooth;
+            padding-bottom:48px ;
+            padding: 0;
+            width: 350px;
+            height: 85vh; list-style-type: none; margin: 0;}
+      #messages > li { padding: 0.5rem 1rem; }
+      #messages > li:nth-child(odd) { background: #eee; }
+    </style>
+</head>
+<body>
+    <ul id="messages"></ul>
+    <form id="form" action="">
+      <input type="text" name="message" id="input" placeholder="Type a message"  id="input" autocomplete="off" /><button>Enviar</button>
+      <button id="toggle-btn">Desconectar</button>
+    </form>
+    <!-- <section id="chat">
+        <form action="">
+            <input type="text" name="message" id="input" placeholder="Type a message" autocomplete="off">
+            <input id="input" autocomplete="off" /><button>Send</button>
+    </section> -->
+</body>
+</html>

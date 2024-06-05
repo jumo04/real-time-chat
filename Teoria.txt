@@ -1,0 +1,12 @@
+Nodejs
+
+Es entorno donde podemos correr javascript del lado del servidor, y tiene una buena ventaja
+es que podemos hacer aplicaciones en tiempo real
+
+
+WEBSOCKET: statefull si tiene estado, no cacheable, realtime, poca latencia, informacion bidireccional es event driven
+            websocket tiene una conexion persistente con websocket, la conexion la puede cerrar el usuario o el servidor
+
+
+HTTP: este no tiene estado,  sea cacheable, rest api, http es unidireccional, no es event driven, se usa un polling para emular el tiempo real en http
+      http servers events
